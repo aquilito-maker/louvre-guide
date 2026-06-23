@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F5F4F0">
+<title>Louvre — Field Guide</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  background:#F5F4F0;
+  color:#18171A;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+:root{
+  --bg:#F5F4F0;
+  --white:#FFFFFF;
+  --mid:#ECEAE4;
+  --t1:#18171A;
+  --t2:#646260;
+  --t3:#A09E9A;
+  --bd:#E3E2DC;
+  --bd2:#C0BEB8;
+
+  --eng-bg:#EBF1FA;--eng:#1B3F6E;
+  --anth-bg:#EAF5EF;--anth:#155030;
+  --arch-bg:#FEF2E2;--arch:#6B3500;
+  --pol-bg:#FAEBE8;--pol:#6B2015;
+}
+
+/* ── APP SHELL ─────────────────────────────── */
+.app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  height:100dvh;
+  max-width:500px;
+  margin:0 auto;
+  background:var(--bg);
+}
+
+/* ── HEADER ───────────────────────────────── */
+.hdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px 20px 11px;
+  padding-top:calc(13px + env(safe-area-inset-top,0px));
+  background:var(--bg);
+  border-bottom:1px solid var(--bd);
+  flex-shrink:0;
+}
+.hdr-mark{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.13em;text-transform:uppercase;
+  color:var(--t2);
+}
+.hdr-count{
+  font-size:11px;font-weight:500;
+  color:var(--t3);letter-spacing:0.04em;
+}
+
+/* ── PROGRESS LINE ────────────────────────── */
+.prog{height:1px;background:var(--bd);flex-shrink:0}
+.prog-fill{height:100%;background:var(--t1);transition:width 0.28s ease}
+
+/* ── ARTIFACT NAV PILLS ───────────────────── */
+.nav{
+  display:flex;gap:5px;
+  padding:9px 20px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;flex-shrink:0;
+  background:var(--bg);border-bottom:1px solid var(--bd);
+}
+.nav::-webkit-scrollbar{display:none}
+.npill{
+  display:flex;align-items:center;justify-content:center;
+  min-width:36px;height:27px;padding:0 7px;
+  font-size:11px;font-weight:600;letter-spacing:0.04em;
+  color:var(--t3);background:var(--white);
+  border:1px solid var(--bd);border-radius:6px;
+  cursor:pointer;flex-shrink:0;
+  transition:background 0.1s,color 0.1s,border-color 0.1s;
+  -webkit-user-select:none;user-select:none;
+}
+.npill.act{background:var(--t1);color:#FFF;border-color:var(--t1)}
+.npill.rec:not(.act){color:var(--anth);background:var(--anth-bg);border-color:transparent}
+
+/* ── FILTER STRIP ─────────────────────────── */
+.filt{
+  display:flex;gap:5px;
+  padding:7px 20px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;flex-shrink:0;
+  background:var(--bg);border-bottom:1px solid var(--bd);
+}
+.filt::-webkit-scrollbar{display:none}
+.fbtn{
+  font-size:11px;font-weight:500;
+  padding:4px 11px;border-radius:20px;
+  border:1px solid var(--bd);background:transparent;
+  color:var(--t2);cursor:pointer;white-space:nowrap;flex-shrink:0;
+  transition:all 0.1s;-webkit-user-select:none;user-select:none;
+}
+.fbtn.on-eng {background:var(--eng-bg); color:var(--eng); border-color:transparent;font-weight:600}
+.fbtn.on-anth{background:var(--anth-bg);color:var(--anth);border-color:transparent;font-weight:600}
+.fbtn.on-arch{background:var(--arch-bg);color:var(--arch);border-color:transparent;font-weight:600}
+.fbtn.on-pol {background:var(--pol-bg); color:var(--pol); border-color:transparent;font-weight:600}
+
+/* ── MAIN SCROLL AREA ─────────────────────── */
+.main{
+  flex:1;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+}
+
+/* ── HERO IMAGE ───────────────────────────── */
+.hero{
+  height:195px;overflow:hidden;
+  background:var(--mid);position:relative;
+}
+.hero img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:center top;
+  display:block;
+}
+.hero-empty{
+  display:flex;align-items:center;justify-content:center;
+  height:100%;
+  font-size:10px;letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--t3);
+}
+.hero-rec{
+  position:absolute;bottom:10px;right:12px;
+  font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--anth);background:rgba(255,255,255,0.88);
+  border-radius:20px;padding:3px 10px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+
+/* ── ARTIFACT HEADER ──────────────────────── */
+.ahead{
+  padding:15px 20px 13px;
+  background:var(--white);
+  border-bottom:1px solid var(--bd);
+}
+.a-stop{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.13em;text-transform:uppercase;
+  color:var(--t3);margin-bottom:4px;
+}
+.a-title{
+  font-size:21px;font-weight:700;
+  letter-spacing:-0.025em;line-height:1.15;
+  color:var(--t1);margin-bottom:9px;
+}
+.a-loc{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--t2);margin-bottom:10px;
+}
+.a-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--t3);flex-shrink:0;
+}
+.tagrow{display:flex;flex-wrap:wrap;gap:4px}
+.tag{
+  font-size:11px;font-weight:500;
+  padding:2px 8px;border-radius:4px;letter-spacing:0.01em;
+}
+.t-eng {background:var(--eng-bg);color:var(--eng)}
+.t-anth{background:var(--anth-bg);color:var(--anth)}
+.t-arch{background:var(--arch-bg);color:var(--arch)}
+.t-pol {background:var(--pol-bg);color:var(--pol)}
+
+/* ── STICKY TABS ──────────────────────────── */
+.tabs{
+  display:flex;background:var(--white);
+  border-bottom:1px solid var(--bd);
+  position:sticky;top:0;z-index:10;
+}
+.tab{
+  flex:1;padding:10px 2px;
+  font-size:12px;font-weight:500;
+  color:var(--t3);text-align:center;cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:color 0.1s,border-color 0.1s;
+  -webkit-user-select:none;user-select:none;
+}
+.tab.on{color:var(--t1);border-bottom-color:var(--t1)}
+
+/* ── CONTENT PANELS ───────────────────────── */
+.panel{display:none;padding:18px 20px 28px}
+.panel.on{display:block}
+
+.plbl{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.11em;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px;
+}
+.ptxt{
+  font-size:15px;line-height:1.68;
+  color:var(--t2);
+}
+.ptxt strong{font-weight:600;color:var(--t1)}
+
+.pbox{
+  background:var(--white);
+  border:1px solid var(--bd);border-radius:12px;
+  padding:14px 16px;
+}
+.pbox .ptxt{font-size:14px}
+
+.sep{height:1px;background:var(--bd);margin:16px 0}
+
+/* Lens cards */
+.lens{
+  background:var(--white);
+  border:1px solid var(--bd);border-radius:12px;
+  padding:14px 16px;margin-bottom:8px;
+}
+.lens:last-child{margin-bottom:0}
+.lens-lbl{
+  font-size:10px;font-weight:700;
+  letter-spacing:0.11em;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.lens-eng  .lens-lbl{color:var(--eng)}
+.lens-anth .lens-lbl{color:var(--anth)}
+.lens-arch .lens-lbl{color:var(--arch)}
+.lens-pol  .lens-lbl{color:var(--pol)}
+
+/* Controversy callout */
+.cbox{
+  background:var(--white);
+  border-left:3px solid var(--bd2);
+  border-radius:0 12px 12px 0;
+  padding:14px 16px;
+}
+
+/* ── BOTTOM NAV ───────────────────────────── */
+.bnav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  background:var(--bg);border-top:1px solid var(--bd);
+  flex-shrink:0;
+}
+.bbtn{
+  font-size:13px;font-weight:500;
+  color:var(--t2);padding:8px 18px;
+  border:1px solid var(--bd);border-radius:8px;
+  background:var(--white);cursor:pointer;
+  min-width:88px;text-align:center;
+  -webkit-user-select:none;user-select:none;
+  transition:background 0.1s;
+}
+.bbtn:active{background:var(--mid)}
+.bbtn.dim{opacity:0.25;pointer-events:none}
+.bpos{
+  font-size:12px;font-weight:500;
+  color:var(--t3);letter-spacing:0.03em;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hdr">
+    <span class="hdr-mark">Louvre &mdash; Field Guide</span>
+    <span class="hdr-count" id="hdrCount"></span>
+  </div>
+  <div class="prog"><div class="prog-fill" id="progFill"></div></div>
+  <div class="nav" id="navEl"></div>
+  <div class="filt" id="filtEl"></div>
+  <div class="main" id="mainEl"></div>
+  <div class="bnav">
+    <button class="bbtn" id="bPrev" onclick="go(-1)">Prev</button>
+    <span class="bpos" id="bPos"></span>
+    <button class="bbtn" id="bNext" onclick="go(1)">Next</button>
+  </div>
+</div>
+<script>
+const PIECES=[
+{id:"hammurabi",num:"01",title:"Code of Hammurabi",rec:false,
+ loc:"Richelieu Wing · Room 3",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Milkau_Oberer_Teil_der_Stele_mit_dem_Gesetzescode_Hammurapis_369-2.jpg/400px-Milkau_Oberer_Teil_der_Stele_mit_dem_Gesetzescode_Hammurapis_369-2.jpg",
+ lookFor:"<strong>Black diorite stele, 2.25m tall.</strong> Cuneiform text covers the body. Top panel: seated god handing a rod and ring (symbols of authority) to a standing king. The god’s headdress has four horns — count them. Lower third of text has a visible erasure.",
+ history:"<strong>~1754 BCE.</strong> Commissioned by Hammurabi, sixth king of Babylon. Discovered 1901 in Susa, Iran by French archaeologist Jacques de Morgan. Originally one of several copies placed in temples across the empire.",
+ lenses:[
+  {type:"eng",lbl:"Engineering / materials",txt:"Misidentified as basalt for decades — it’s diorite, one of the hardest stones available in the ancient world. ~4,000 lines of cuneiform impressed with a stylus at sub-millimeter depth with consistent character height = evidence of professional scribal standardization at scale."},
+  {type:"arch",lbl:"Archaeology",txt:"Found in Susa because the Elamite king Shutruk-Nahhunte looted it from Babylon ~1200 BCE. The erased lower third was likely cleared for an Elamite inscription that was never added. That erasure is itself an archaeological record of conquest."},
+  {type:"pol",lbl:"Political power",txt:"The 282 laws echo older Sumerian codes. The real purpose: a monument to Hammurabi’s divine mandate. The rod-and-ring image literally shows a god installing him. Law as theater of legitimacy, not justice."}
+ ],
+ note:"Called ‘world’s first law code’ — it isn’t. The Ur-Nammu code predates it by 300 years. The ‘eye for an eye’ framing is a modern distortion; penalties are class-stratified. A noble pays silver; a commoner pays a limb.",
+ tags:["eng","arch","pol"]},
+
+{id:"naram",num:"02",title:"Victory Stele of Naram-Sin",rec:false,
+ loc:"Richelieu Wing · Room 2",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Victory_stele_of_Naram_Sin_9068.jpg/400px-Victory_stele_of_Naram_Sin_9068.jpg",
+ lookFor:"<strong>Pink limestone, 2m tall, triangular composition.</strong> King Naram-Sin dominates the upper third — larger than everyone else. He wears a horned helmet (divine attribute). Below him: soldiers ascending a mountain; a defeated enemy pierced by a spear; another falling headfirst.",
+ history:"<strong>~2254–2218 BCE.</strong> Akkadian period. Naram-Sin was Sargon of Akkad’s grandson. Like the Hammurabi stele, this was looted to Susa by the Elamites ~1200 BCE and found there in 1898.",
+ lenses:[
+  {type:"pol",lbl:"Political propaganda",txt:"Naram-Sin declared himself a god — first Mesopotamian ruler to do so. The horned helmet is his divine claim made visible. His scale (larger than all other figures) and elevation (physically higher on the stele) are compositional arguments for divine status, not artistic choices."},
+  {type:"arch",lbl:"Archaeology",txt:"The triangular format — unusual in Mesopotamian steles which typically use horizontal registers — was deliberate. The mountain shape mirrors the scene depicted. The broken top once held astral symbols (sun, moon) to show the gods witnessing. Those fragments were never found."},
+  {type:"anth",lbl:"Anthropology",txt:"The defeated enemy is identified as Lullubi, a mountain people. Their depiction — wild, barefoot, disorganized — vs. the Akkadians’ uniformed ranks is early state propaganda about civilization vs. barbarism. The visual grammar of ‘us vs. them’ starts here."}
+ ],
+ note:"Long attributed to a battle against the Lullubi. That identification rests on a later Elamite inscription added to the stele after it was looted — not original Akkadian text. We are reading the conqueror’s caption on the conquered’s trophy.",
+ tags:["pol","arch","anth"]},
+
+{id:"lamassu",num:"03",title:"Lamassu of Khorsabad",rec:false,
+ loc:"Richelieu Wing · Rooms 4–6 (Khorsabad Courtyard)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Lamassu_Louvre_AO19857.jpg/400px-Lamassu_Louvre_AO19857.jpg",
+ lookFor:"<strong>Alabaster, ~4.4m tall, ~40 tonnes each.</strong> Human head, bull body, eagle wings. Walk around the front: two legs visible. Walk to the side: four legs visible. There is a fifth leg hidden in the transition — count carefully. The beard is rendered in precise uniform spiral curls.",
+ history:"<strong>713–706 BCE.</strong> From the palace gate of Sargon II at Dur-Sharrukin (modern Khorsabad, Iraq). Excavated by French consul Paul-Émile Botta in 1843 — one of the first major Assyrian archaeological excavations. Part of the shipment sank in the Tigris during transport; the Louvre’s pair are survivors.",
+ lenses:[
+  {type:"eng",lbl:"Engineering",txt:"Five legs solve a specific optical problem: two legs from the front reads as standing still; four from the side reads as walking. The fifth bridges the transition. This is a deliberate three-dimensional illusion carved into a 40-tonne block. The engineering challenge is quarrying, transport (no wheeled vehicles capable of this weight), and installation into a gate threshold."},
+  {type:"pol",lbl:"Political power",txt:"These flanked the entrance to Sargon II’s throne room. Every ambassador, vassal king, and foreign dignitary had to walk between them. The message was deliberate: the Assyrian state is defended by beings more powerful than human or animal alone. Intimidation architecture at monumental scale."},
+  {type:"arch",lbl:"Archaeology",txt:"Botta’s excavation at Khorsabad was the first systematic archaeological dig of an Assyrian site. He was looking for the biblical Nineveh — he found Sargon’s capital instead. The find triggered the entire field of Assyriology."}
+ ],
+ note:"The 1846 river transport of Lamassu from Khorsabad resulted in a raft sinking in the Tigris. Some scholars believe the beards were partially reconstructed in Paris workshops, not excavated intact. No original field documentation survives to verify.",
+ tags:["eng","pol","arch"]},
+
+{id:"archers",num:"04",title:"Frieze of Archers",rec:false,
+ loc:"Richelieu Wing · Room 12",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Frieze_of_archers_Louvre_Sb3306.jpg/400px-Frieze_of_archers_Louvre_Sb3306.jpg",
+ lookFor:"<strong>Glazed polychrome brick, each soldier ~1.5m tall.</strong> Royal Persian Guard — the ‘Immortals’ of Darius I. Look for the repeating pattern: yellow skin, dark beards, identical posture. Each carries a spear, quiver, and bow. The glazed surface has survived 2,500 years — note the color intensity.",
+ history:"<strong>~510 BCE.</strong> From the palace of Darius I at Susa, Persia (modern Iran). Excavated by Jacques de Morgan, 1901–1902 — same expedition that found the Hammurabi stele. The bricks were fired individually, glazed, and assembled like a mosaic.",
+ lenses:[
+  {type:"eng",lbl:"Engineering / craft",txt:"Each soldier is built from ~40 individually shaped and glazed bricks. The glaze (silica-based, with metal oxide colorants) was fired at ~900°C. Getting consistent color across a modular, large-scale wall panel required precise kiln control. This is industrial craft production, not artisanal work."},
+  {type:"pol",lbl:"Political power",txt:"The ‘Immortals’ were named for their fixed headcount: when one soldier died, another immediately replaced him, so the unit was always 10,000 strong. Depicting them in the palace meant the king was always surrounded by this symbolic permanence. The frieze is a political claim about dynastic continuity."},
+  {type:"anth",lbl:"Anthropology",txt:"The identical rendering of each soldier — same face, same pose, same scale — is a statement about the Achaemenid military ideal: fungible, disciplined, replaceable. Compare to Egyptian friezes where pharaoh is always larger. Here, the unit is the message, not the individual."}
+ ],
+ note:"Excavated under French concession during Iranian territory. Iran has raised repatriation claims for Achaemenid-era objects. France’s 2002 law on the inalienability of museum collections was partly designed to preempt exactly these requests.",
+ tags:["eng","pol","anth"]},
+
+{id:"vultures",num:"05",title:"Stele of the Vultures",rec:false,
+ loc:"Richelieu Wing · Room 2",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Stele_of_the_Vultures_Louvre_AO50.jpg/400px-Stele_of_the_Vultures_Louvre_AO50.jpg",
+ lookFor:"<strong>Limestone, ~1.8m tall, multiple surviving fragments.</strong> Two distinct registers: one shows a god holding a net full of captured enemies (literal divine capture of the defeated). Other side: a phalanx of soldiers with overlapping shields and spears — one of the earliest known depictions of organized military formation.",
+ history:"<strong>~2450 BCE.</strong> Erected by Eannatum, king of Lagash, to commemorate his victory over the city-state of Umma over a disputed strip of land. Found at Girsu (modern Tello, Iraq) by French archaeologist Ernest de Sarzec, 1880.",
+ lenses:[
+  {type:"arch",lbl:"Archaeology",txt:"This is the oldest historical document that names the parties in a military conflict, describes a treaty, and shows the aftermath of battle. The vultures eating corpses (visible in fragments) give it its name. It is the first war journalism."},
+  {type:"eng",lbl:"Engineering / military",txt:"The phalanx depicted here predates the famous Greek phalanx by 1,800 years. Overlapping shields, coordinated spear positioning, tight file formation — this is not a mob. It is organized, disciplined unit tactics requiring training infrastructure: commanders, drill, supply chains."},
+  {type:"pol",lbl:"Political power",txt:"The god-net panel is extraordinary: the deity literally holds the defeated enemies trapped. Eannatum is claiming that the gods conducted the war and he was merely their instrument. Theological outsourcing of military violence — a template used for 4,000 years afterward."}
+ ],
+ note:"The dispute between Lagash and Umma over the Gu-Edin border strip is documented across multiple sources. What the stele doesn’t say: Umma broke the treaty within a generation and the wars continued for 150 years. The ‘decisive victory’ commemorated here changed nothing structurally.",
+ tags:["arch","eng","pol"]},
+
+{id:"winged",num:"06",title:"Winged Victory of Samothrace",rec:false,
+ loc:"Denon Wing · Daru Staircase landing",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Nike_of_Samothrake_Louvre_Ma2369_n4.jpg/400px-Nike_of_Samothrake_Louvre_Ma2369_n4.jpg",
+ lookFor:"<strong>White marble, 2.44m tall, headless, armless.</strong> Stands on the prow of a stone ship. Drapery is pressed against the body as if by wind. Right wing is largely original; left is a 19th-century plaster restoration. A glass case nearby holds the right hand, found separately in 1950.",
+ history:"<strong>~190 BCE.</strong> Probably Rhodian, likely commemorating a naval victory. Discovered 1863 on Samothrace by French consul Charles Champoiseau. The ship-prow base was excavated separately in 1879 — she was reassembled in Paris.",
+ lenses:[
+  {type:"eng",lbl:"Engineering / structure",txt:"The ship prow is a separate marble block acting as pedestal. The figure’s weight is distributed through both feet and the drapery contact points — necessary given the implied forward lean and wind-resistance the pose suggests. The cantilevered wings required internal iron armatures, now corroded, which have caused ongoing structural cracking."},
+  {type:"pol",lbl:"Political power",txt:"Nike (Victory) imagery was deployed by Hellenistic rulers to claim divine favor for military success. The Louvre’s placement of her at the top of the Daru Staircase was itself a political decision by Napoleon III — visitors literally ascend toward imperial victory."}
+ ],
+ note:"The right hand fragment was found in 1950 in a Viennese collection. It was studied, displayed briefly, then quietly shelved. Museums prefer the headless-armless mystery. The hand makes her ordinary.",
+ tags:["eng","pol"]},
+
+{id:"venus",num:"07",title:"Venus de Milo",rec:false,
+ loc:"Sully Wing · Room 16 (ground floor)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/VenusDeMiloLouvre.jpg/400px-VenusDeMiloLouvre.jpg",
+ lookFor:"<strong>White marble, 2.03m, both arms missing.</strong> Slight contrapposto — left hip raised, weight on right leg. Look at the waist: there is a visible join line where two separate marble blocks were assembled at the hips. She is literally two pieces.",
+ history:"<strong>~130–100 BCE.</strong> Found 1820 on Milos (then Ottoman) by farmer Yorgos Kentrotas. French naval officer Dumont d’Urville brokered its purchase. Arms were reportedly present at discovery — then disappeared.",
+ lenses:[
+  {type:"arch",lbl:"Archaeology",txt:"Found in a niche in a ruined gymnasium wall — not a temple. A plinth fragment with a partial artist’s inscription was found nearby and then lost. It identified a ‘late’ Hellenistic sculptor, undermining the preferred Classical-era narrative, so its disappearance was convenient."},
+  {type:"pol",lbl:"Political power",txt:"France acquired her just as the Venus de’ Medici — long the crown jewel of European sculpture — returned to Florence from Paris after Napoleon’s defeat. The Louvre needed a replacement. Her fame is partly a deliberate institutional PR campaign following geopolitical humiliation."}
+ ],
+ note:"Witnesses described a left arm holding an apple, right arm raised. Sketches exist. The arms vanished between discovery and French acquisition — possibly removed because they made her look ordinary.",
+ tags:["arch","pol"]},
+
+{id:"scribe",num:"08",title:"The Seated Scribe",rec:true,
+ loc:"Sully Wing · Room 22 (Egyptian Antiquities)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Squatting_scribe_Louvre_042011.jpg/400px-Squatting_scribe_Louvre_042011.jpg",
+ lookFor:"<strong>Painted limestone, 53cm tall.</strong> Cross-legged, papyrus scroll open across his lap, ready to write. The eyes are inlaid: rock crystal over a copper iris, with a magnesite white — they appear to follow you. The chest musculature is individualized, not idealized.",
+ history:"<strong>~2600–2350 BCE, Old Kingdom.</strong> Exact identity unknown — the inscribed base that would have named him was never found. Excavated at Saqqara by Auguste Mariette, 1850. One of fewer than a dozen surviving painted sculptures from this period.",
+ lenses:[
+  {type:"anth",lbl:"Anthropology",txt:"Scribes were the administrative backbone of the Egyptian state — tax collectors, census takers, military logisticians. The fact that this man was buried with a statue means he had enough status for commemorative sculpture, but his anonymity means he wasn’t royalty. He’s the earliest surviving portrait of middle management."},
+  {type:"eng",lbl:"Engineering / materials",txt:"The inlaid eye construction: rock crystal pupil, copper iris ring, magnesite white. The crystal was ground and polished to specific curvature, then fitted into a copper housing. This is precision optical work 4,500 years before optical science. The result creates a light-responsive iris that still functions."},
+  {type:"arch",lbl:"Archaeology",txt:"The lack of identifying inscription is itself archaeological data. Mariette excavated Saqqara chaotically — his teams removed thousands of objects without provenance documentation. We know the tomb’s general area but not which shaft or chamber. The scribe’s identity is unrecoverable."}
+ ],
+ note:"One of the most recognized objects in the Louvre. Zero contemporary documents confirm who he is, why he was commemorated, or who commissioned the statue. His fame rests entirely on the modernity of his expression — a modern projection onto an anonymous object.",
+ tags:["anth","eng","arch"]},
+
+{id:"sphinx",num:"09",title:"Great Sphinx of Tanis",rec:false,
+ loc:"Sully Wing · Room 12 (Egyptian Antiquities, ground floor)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Sphinx_of_Tanis_Front%2C_Louvre_Museum.jpg/400px-Sphinx_of_Tanis_Front%2C_Louvre_Museum.jpg",
+ lookFor:"<strong>Pink granite, 1.83m tall, ~4.8m long.</strong> Human face, lion body. The face shows asymmetry and tool marks from recarving. Multiple cartouches on the chest and between the paws from different pharaohs. Each inscription is a different ruler’s claim.",
+ history:"<strong>Originally ~2600 BCE (Old Kingdom).</strong> Found at Tanis in the Nile Delta by Auguste Mariette, 1825. Removed under French military-scientific occupation during the Napoleonic campaign era.",
+ lenses:[
+  {type:"arch",lbl:"Archaeology",txt:"Tanis was already a city of displaced monuments — 21st Dynasty pharaohs (1069–945 BCE) moved statues from older sites to build their new capital. This sphinx was secondhand before France took it. Its original location is unknown and likely unrecoverable."},
+  {type:"anth",lbl:"Anthropology",txt:"The repeated recarving of the face by successive pharaohs is documented damnatio memoriae in reverse — not erasure of the predecessor but inscription of the new ruler onto existing, prestigious infrastructure. The face layers are a physical stratigraphy of political succession."},
+  {type:"pol",lbl:"Political power",txt:"Napoleon’s Egyptian campaign (1798) was the first state-sponsored archaeological extraction operation with embedded scientists. The Institut d’Égypte catalogued what was taken. This sphinx was removed under French military occupation — not purchased, not gifted."}
+ ],
+ note:"Egypt has repeatedly requested repatriation. France’s 2002 law classifying museum collections as ‘inalienable state property’ was written specifically to block these claims.",
+ tags:["arch","anth","pol"]},
+
+{id:"zodiac",num:"10",title:"Dendera Zodiac",rec:true,
+ loc:"Sully Wing · Room 12 (Egyptian Antiquities, 1st floor)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Dendera_Zodiac_on_display_in_the_Louvre.jpg/400px-Dendera_Zodiac_on_display_in_the_Louvre.jpg",
+ lookFor:"<strong>Sandstone ceiling slab, ~2.5m diameter, circular.</strong> A complete sky map: 12 zodiac constellations, 36 decans (10-day divisions of the Egyptian year), planets, and constellation figures. Look for Scorpio, Leo, and Orion. The slab was cut directly from a temple ceiling.",
+ history:"<strong>~50 BCE, Ptolemaic Period.</strong> Ceiling of the Osiris chapel, Temple of Hathor at Dendera, Upper Egypt. Cut from the ceiling and removed by Claude Lelorrain on orders from Napoleon’s savants in 1820. Replaced in the temple with a plaster cast.",
+ lenses:[
+  {type:"eng",lbl:"Engineering / astronomy",txt:"The positions of planets encoded in the relief can be astronomically back-calculated. Scholars have used this to date the ceiling’s carving to ~50 BCE with high precision — the planetary configuration shown matches that specific period. It is a functional astronomical record, not just decoration."},
+  {type:"arch",lbl:"Archaeology",txt:"This is the most complete ancient Egyptian star map in existence. The 36 decans were the basis of the Egyptian calendar and the origin of the 24-hour day (each decan rose for 40 minutes, 36 × 40 = 1440 minutes = 24 hours). The Zodiac is the calendar in stone."},
+  {type:"pol",lbl:"Political power",txt:"The Ptolemaic rulers who commissioned this were Greek — descendants of Alexander’s generals. The Dendera temple blends Greek zodiac symbolism with Egyptian decan astronomy deliberately. It’s a syncretism document: Greek rulers performing Egyptian religious legitimacy."}
+ ],
+ note:"The temple ceiling was literally sawed off. A replica was installed — Egypt got the cast, France got the original. When the slab arrived in Paris, Napoleon used it in a propaganda exhibition to showcase the scientific ‘fruits’ of his Egyptian campaign. The cutting damaged adjacent reliefs that remain in situ.",
+ tags:["eng","arch","pol"]},
+
+{id:"napoleon",num:"11",title:"The Coronation of Napoleon",rec:false,
+ loc:"Denon Wing · Room 702 (Mollien Rooms, 1st floor)",
+ img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Jacques-Louis_David_-_The_Coronation_of_Napoleon_%281805-1807%29.jpg/400px-Jacques-Louis_David_-_The_Coronation_of_Napoleon_%281805-1807%29.jpg",
+ lookFor:"<strong>Oil on canvas, 6.21m × 9.79m — largest painting in the Louvre.</strong> Center: Napoleon crowning Joséphine, not himself. Pope Pius VII sits behind, hands resting, passive. Upper gallery: find Napoleon’s mother — she refused to attend. The real hall was darker and more chaotic; the lighting here is a unified fiction.",
+ history:"<strong>1805–1807.</strong> Commissioned by Napoleon, painted by Jacques-Louis David. Depicts the December 2, 1804 coronation at Notre-Dame. David was given official authorization to ‘correct’ the scene. A second version is at Versailles.",
+ lenses:[
+  {type:"eng",lbl:"Engineering / scale",txt:"~60 square meters of canvas. Required scaffolding during production. David used a grid-transfer method to scale from preparatory drawings. Over 200 individual portraits are identifiable. The lighting scheme depicts a single unified source — physically impossible in the actual cathedral."},
+  {type:"anth",lbl:"Anthropology",txt:"Napoleon deviated from the agreed script at the ceremony, taking the crown from the Pope and placing it on his own head before crowning Joséphine himself. The message: he answered to no ecclesiastical authority. David’s job was to make this look natural, inevitable, and divinely sanctioned simultaneously."},
+  {type:"pol",lbl:"Political propaganda",txt:"Every detail is a fabrication: Joséphine was 41, painted younger. Napoleon’s mother refused to attend but appears prominently. The Pope, humiliated in real life, looks serene and approving. Napoleon reviewed the finished painting and said ‘Good, David.’ He personally approved the lie."}
+ ],
+ note:"Napoleon pressured David to repaint the Pope’s hand from resting to raised in blessing — even the gesture is political revision. The painting was publicly displayed so French citizens would internalize a coronation that never happened.",
+ tags:["pol","anth","eng"]}
+];
+
+const TAGS={eng:"Engineering",anth:"Anthropology",arch:"Archaeology",pol:"Political Power"};
+const TC={eng:"t-eng",anth:"t-anth",arch:"t-arch",pol:"t-pol"};
+const LC={eng:"lens-eng",anth:"lens-anth",arch:"lens-arch",pol:"lens-pol"};
+
+let cur=0, tab="look", filt=null;
+let tx=0, ty=0;
+
+function vis(){return filt?PIECES.filter(p=>p.tags.includes(filt)):PIECES}
+
+function go(dir){
+  const v=vis(), i=v.indexOf(PIECES[cur]), ni=i+dir;
+  if(ni>=0&&ni<v.length){cur=PIECES.indexOf(v[ni]);tab="look";render();document.getElementById("mainEl").scrollTop=0}
+}
+
+function jump(i){cur=i;tab="look";render();document.getElementById("mainEl").scrollTop=0}
+
+function setFilt(k){
+  filt=filt===k?null:k;
+  const v=vis();
+  if(v.length>0&&!v.includes(PIECES[cur]))cur=PIECES.indexOf(v[0]);
+  tab="look";render();
+}
+
+function setTab(t){
+  tab=t;
+  document.querySelectorAll(".tab").forEach(el=>el.classList.toggle("on",el.dataset.t===t));
+  document.querySelectorAll(".panel").forEach(el=>el.classList.toggle("on",el.dataset.t===t));
+}
+
+function render(){buildNav();buildFilt();buildArtifact();buildBnav()}
+
+function buildNav(){
+  const el=document.getElementById("navEl");
+  el.innerHTML="";
+  PIECES.forEach((p,i)=>{
+    if(filt&&!p.tags.includes(filt))return;
+    const pill=document.createElement("button");
+    pill.className="npill"+(i===cur?" act":"")+(p.rec?" rec":"");
+    pill.textContent=p.num;
+    pill.setAttribute("aria-label",p.title);
+    pill.onclick=()=>jump(i);
+    el.appendChild(pill);
+    if(i===cur)requestAnimationFrame(()=>pill.scrollIntoView({behavior:"auto",inline:"center",block:"nearest"}));
+  });
+  const v=vis(), idx=v.indexOf(PIECES[cur]);
+  document.getElementById("hdrCount").textContent=(idx+1)+" / "+v.length;
+  document.getElementById("progFill").style.width=(v.length>1?(idx/(v.length-1)*100):100)+"%";
+}
+
+function buildFilt(){
+  const el=document.getElementById("filtEl");
+  el.innerHTML="";
+  Object.entries(TAGS).forEach(([k,v])=>{
+    const btn=document.createElement("button");
+    btn.className="fbtn"+(filt===k?" on-"+k:"");
+    btn.textContent=v;
+    btn.onclick=()=>setFilt(k);
+    el.appendChild(btn);
+  });
+}
+
+function buildArtifact(){
+  const p=PIECES[cur];
+  const tags=p.tags.map(t=>`<span class="tag ${TC[t]}">${TAGS[t]}</span>`).join("");
+  const lenses=p.lenses.map(l=>`<div class="lens ${LC[l.type]}"><div class="lens-lbl">${l.lbl}</div><div class="ptxt">${l.txt}</div></div>`).join("");
+  document.getElementById("mainEl").innerHTML=`
+<div class="hero">
+  <img src="${p.img}" alt="${p.title}"
+       onerror="this.style.display='none';document.getElementById('hno${p.id}').style.display='flex'">
+  <div class="hero-empty" id="hno${p.id}" style="display:none">No image offline</div>
+  ${p.rec?'<div class="hero-rec">Recommended stop</div>':""}
+</div>
+<div class="ahead">
+  <div class="a-stop">Stop ${p.num}</div>
+  <div class="a-title">${p.title}</div>
+  <div class="a-loc"><span class="a-dot"></span>${p.loc}</div>
+  <div class="tagrow">${tags}</div>
+</div>
+<div class="tabs">
+  <div class="tab ${tab==="look"?"on":""}" data-t="look" onclick="setTab('look')">Look For</div>
+  <div class="tab ${tab==="hist"?"on":""}" data-t="hist" onclick="setTab('hist')">History</div>
+  <div class="tab ${tab==="lens"?"on":""}" data-t="lens" onclick="setTab('lens')">Lenses</div>
+  <div class="tab ${tab==="note"?"on":""}" data-t="note" onclick="setTab('note')">Note</div>
+</div>
+<div class="panel ${tab==="look"?"on":""}" data-t="look">
+  <div class="plbl">What to look for</div>
+  <div class="pbox"><div class="ptxt">${p.lookFor}</div></div>
+</div>
+<div class="panel ${tab==="hist"?"on":""}" data-t="hist">
+  <div class="plbl">Background</div>
+  <div class="ptxt">${p.history}</div>
+</div>
+<div class="panel ${tab==="lens"?"on":""}" data-t="lens">
+  <div class="plbl">Analytical lenses</div>
+  ${lenses}
+</div>
+<div class="panel ${tab==="note"?"on":""}" data-t="note">
+  <div class="plbl">Footnote</div>
+  <div class="cbox"><div class="ptxt">${p.note}</div></div>
+</div>`;
+}
+
+function buildBnav(){
+  const v=vis(), i=v.indexOf(PIECES[cur]);
+  document.getElementById("bPrev").classList.toggle("dim",i===0);
+  document.getElementById("bNext").classList.toggle("dim",i===v.length-1);
+  document.getElementById("bPos").textContent=(i+1)+" / "+v.length;
+}
+
+// Swipe to navigate — attach once to the persistent #mainEl container
+const mainEl=document.getElementById("mainEl");
+mainEl.addEventListener("touchstart",e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+mainEl.addEventListener("touchend",e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  const dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)>52&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx<0?1:-1);
+},{passive:true});
+
+render();
+</script>
+</body>
+</html>
